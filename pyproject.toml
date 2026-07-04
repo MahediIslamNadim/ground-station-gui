@@ -19,8 +19,5 @@ dependencies = [
 [project.urls]
 Repository = "https://github.com/MahediIslamNadim/ground-station-gui"
 
-[project.scripts]
-ground-station = "nexcore_ground_station:main"
-
 [tool.setuptools.packages.find]
 where = ["src"]
