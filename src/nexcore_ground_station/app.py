@@ -63,6 +63,16 @@ class Theme:
 # ### ScrollFrame ##############################################################
 
 class ScrollFrame(tk.Frame):
+    """A scrollable frame wrapper for Tkinter.
+
+    Provides a vertical scrollbar for any content added to the inner frame.
+    Supports mouse wheel scrolling.
+
+    Args:
+        parent: The parent tkinter widget.
+        **kw: Additional keyword arguments passed to tk.Frame.
+    """
+
     def __init__(self, parent: tk.Widget, **kw: Any) -> None:
         super().__init__(parent, **kw)
         self.canvas: tk.Canvas = tk.Canvas(self, bg=Theme.BG_PANEL, highlightthickness=0)
@@ -83,6 +93,16 @@ class ScrollFrame(tk.Frame):
 # ### MAVLink v2 Protocol #####################################################
 
 class MAVLink:
+    """MAVLink v1 protocol parser and decoder.
+
+    Provides class methods for parsing MAVLink frames and decoding
+    common message types (heartbeat, sys_status, GPS, IMU, attitude).
+
+    Attributes:
+        HEADER: MAVLink frame start byte (0xFE).
+        KNOWN_MSGS: Mapping of message IDs to human-readable names.
+    """
+
     HEADER: int = 0xFE
     KNOWN_MSGS: dict[int, str] = {
         0: "HEARTBEAT", 1: "SYS_STATUS", 14: "BATTERY_STATUS",
@@ -92,6 +112,17 @@ class MAVLink:
 
     @classmethod
     def parse_frame(cls, data: bytes) -> Optional[dict[str, Any]]:
+        """Parse a raw MAVLink v1 frame from bytes.
+
+        Validates the header, extracts the payload, and verifies the checksum.
+
+        Args:
+            data: Raw byte string containing the MAVLink frame.
+
+        Returns:
+            A dict with keys (msgid, sysid, compid, payload, length, seq)
+            if parsing succeeds, or None if the frame is invalid.
+        """
         if len(data) < 6:
             return None
         if data[0] != 0xFE:
@@ -251,6 +282,16 @@ PARAM_DEFS = [
 # ### Connection wrapper ######################################################
 
 class SerialConn:
+    """Manages serial or Wi-Fi TCP connection to the flight controller.
+
+    Provides a unified interface for reading/writing data over either
+    a physical serial port or a Wi-Fi TCP socket connection.
+
+    Args:
+        port: Serial port name (e.g. "COM3") or IP address for Wi-Fi.
+        baud: Baud rate for serial connections.
+    """
+
     def __init__(self) -> None:
         self.serial: Any = None
         self.is_wifi: bool = False
@@ -314,6 +355,13 @@ class SerialConn:
 # ### Main Ground Station #####################################################
 
 class GroundStation:
+    """Main ground station application window.
+
+    Provides a comprehensive GUI for monitoring and controlling an ESP8266
+    flight controller. Includes 3D attitude visualization, sensor graphing,
+    MAVLink telemetry, calibration tools, and flight data logging.
+    """
+
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("NexCore Ground Station - ESP8266 Flight Controller")

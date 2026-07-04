@@ -1,14 +1,14 @@
 class GroundStationError(Exception):
-    pass
+    """Base exception for all ground station errors."""
 
 
 class SerialError(GroundStationError):
-    pass
+    """Raised when serial port operations fail."""
 
 
 class MAVLinkError(GroundStationError):
-    pass
+    """Raised when MAVLink protocol parsing fails."""
 
 
 class ConfigError(GroundStationError):
-    pass
+    """Raised when configuration loading or saving fails."""
