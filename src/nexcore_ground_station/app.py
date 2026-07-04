@@ -38,34 +38,36 @@ except ImportError:
 
 # ### Theme ####################################################################
 
+from typing import Any, Optional
+
 class Theme:
-    BG_DARK = "#0a0e17"
-    BG_PANEL = "#111827"
-    BG_CARD = "#1a2332"
-    BG_INPUT = "#0d1117"
-    BORDER = "#1e293b"
-    BLUE = "#3b82f6"
-    GREEN = "#10b981"
-    RED = "#ef4444"
-    YELLOW = "#f59e0b"
-    PURPLE = "#8b5cf6"
-    CYAN = "#06b6d4"
-    ORANGE = "#f97316"
-    PINK = "#ec4899"
-    TEXT = "#f1f5f9"
-    TEXT2 = "#94a3b8"
-    TEXT3 = "#64748b"
-    TEXT4 = "#475569"
+    BG_DARK: str = "#0a0e17"
+    BG_PANEL: str = "#111827"
+    BG_CARD: str = "#1a2332"
+    BG_INPUT: str = "#0d1117"
+    BORDER: str = "#1e293b"
+    BLUE: str = "#3b82f6"
+    GREEN: str = "#10b981"
+    RED: str = "#ef4444"
+    YELLOW: str = "#f59e0b"
+    PURPLE: str = "#8b5cf6"
+    CYAN: str = "#06b6d4"
+    ORANGE: str = "#f97316"
+    PINK: str = "#ec4899"
+    TEXT: str = "#f1f5f9"
+    TEXT2: str = "#94a3b8"
+    TEXT3: str = "#64748b"
+    TEXT4: str = "#475569"
 
 
 # ### ScrollFrame ##############################################################
 
 class ScrollFrame(tk.Frame):
-    def __init__(self, parent, **kw):
+    def __init__(self, parent: tk.Widget, **kw: Any) -> None:
         super().__init__(parent, **kw)
-        self.canvas = tk.Canvas(self, bg=Theme.BG_PANEL, highlightthickness=0)
-        self.scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
-        self.inner = tk.Frame(self.canvas, bg=Theme.BG_PANEL)
+        self.canvas: tk.Canvas = tk.Canvas(self, bg=Theme.BG_PANEL, highlightthickness=0)
+        self.scrollbar: ttk.Scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
+        self.inner: tk.Frame = tk.Frame(self.canvas, bg=Theme.BG_PANEL)
         self.inner.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
         self.canvas.create_window((0, 0), window=self.inner, anchor="nw")
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
@@ -74,36 +76,36 @@ class ScrollFrame(tk.Frame):
         self.canvas.bind("<Enter>", lambda e: self.canvas.bind_all("<MouseWheel>", self._on_mousewheel))
         self.canvas.bind("<Leave>", lambda e: self.canvas.unbind_all("<MouseWheel>"))
 
-    def _on_mousewheel(self, event):
+    def _on_mousewheel(self, event: tk.Event) -> None:
         self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
 
 # ### MAVLink v2 Protocol #####################################################
 
 class MAVLink:
-    HEADER = 0xFE
-    KNOWN_MSGS = {
+    HEADER: int = 0xFE
+    KNOWN_MSGS: dict[int, str] = {
         0: "HEARTBEAT", 1: "SYS_STATUS", 14: "BATTERY_STATUS",
         24: "GPS_RAW_INT", 27: "RAW_IMU", 30: "ATTITUDE",
         36: "SERVO_OUTPUT_RAW", 65: "RC_CHANNELS",
     }
 
     @classmethod
-    def parse_frame(cls, data):
+    def parse_frame(cls, data: bytes) -> Optional[dict[str, Any]]:
         if len(data) < 6:
             return None
         if data[0] != 0xFE:
             return None
-        length = data[1]
-        seq = data[2]
-        sysid = data[3]
-        compid = data[4]
-        msgid = data[5]
+        length: int = data[1]
+        seq: int = data[2]
+        sysid: int = data[3]
+        compid: int = data[4]
+        msgid: int = data[5]
         if len(data) < 6 + length + 1:
             return None
-        payload = data[6:6 + length]
-        checksum = data[6 + length]
-        calc = 0
+        payload: bytes = data[6:6 + length]
+        checksum: int = data[6 + length]
+        calc: int = 0
         for b in payload:
             calc ^= b
         if calc != checksum:
@@ -112,7 +114,7 @@ class MAVLink:
                 "payload": payload, "length": length, "seq": seq}
 
     @classmethod
-    def decode_heartbeat(cls, p):
+    def decode_heartbeat(cls, p: bytes) -> dict[str, Any]:
         if len(p) < 9:
             return {}
         type_, autopilot, base_mode = struct.unpack("<BBB", p[:3])
@@ -124,31 +126,31 @@ class MAVLink:
                 "mavlink_version": mavlink_version}
 
     @classmethod
-    def decode_sys_status(cls, p):
+    def decode_sys_status(cls, p: bytes) -> dict[str, Any]:
         if len(p) < 19:
             return {}
-        vol = struct.unpack("<h", p[0:2])[0] / 1000.0
-        cur = struct.unpack("<h", p[2:4])[0] / 100.0
-        rem = p[4]
-        armed = p[5]
-        load = struct.unpack("<H", p[16:18])[0]
-        failsafe = p[18]
+        vol: float = struct.unpack("<h", p[0:2])[0] / 1000.0
+        cur: float = struct.unpack("<h", p[2:4])[0] / 100.0
+        rem: int = p[4]
+        armed: int = p[5]
+        load: int = struct.unpack("<H", p[16:18])[0]
+        failsafe: int = p[18]
         return {"voltage": vol, "current": cur, "remaining": rem,
                 "armed": armed, "load": load, "failsafe": failsafe}
 
     @classmethod
-    def decode_gps_raw_int(cls, p):
+    def decode_gps_raw_int(cls, p: bytes) -> dict[str, Any]:
         if len(p) < 20:
             return {}
-        lat = struct.unpack("<i", p[8:12])[0] / 1e7
-        lon = struct.unpack("<i", p[12:16])[0] / 1e7
-        alt = struct.unpack("<i", p[16:20])[0] / 1000.0
-        fix = p[20] if len(p) > 20 else 0
-        sats = p[21] if len(p) > 21 else 0
+        lat: float = struct.unpack("<i", p[8:12])[0] / 1e7
+        lon: float = struct.unpack("<i", p[12:16])[0] / 1e7
+        alt: float = struct.unpack("<i", p[16:20])[0] / 1000.0
+        fix: int = p[20] if len(p) > 20 else 0
+        sats: int = p[21] if len(p) > 21 else 0
         return {"fix": fix, "sats": sats, "lat": lat, "lon": lon, "alt": alt}
 
     @classmethod
-    def decode_raw_imu(cls, p):
+    def decode_raw_imu(cls, p: bytes) -> dict[str, Any]:
         if len(p) < 26:
             return {}
         ax, ay, az = struct.unpack("<hhh", p[8:14])
@@ -159,10 +161,10 @@ class MAVLink:
                 "mx": mx / 1000.0, "my": my / 1000.0, "mz": mz / 1000.0}
 
     @classmethod
-    def decode_attitude(cls, p):
+    def decode_attitude(cls, p: bytes) -> dict[str, Any]:
         if len(p) < 28:
             return {}
-        tms = struct.unpack("<I", p[0:4])[0]
+        tms: int = struct.unpack("<I", p[0:4])[0]
         roll, pitch, yaw = struct.unpack("<fff", p[4:16])
         rollspeed, pitchspeed, yawspeed = struct.unpack("<fff", p[16:28])
         return {"time_boot_ms": tms, "roll": math.degrees(roll), "pitch": math.degrees(pitch),
@@ -171,7 +173,7 @@ class MAVLink:
                 "yawspeed": math.degrees(yawspeed)}
 
     @classmethod
-    def decode_servo_output(cls, p):
+    def decode_servo_output(cls, p: bytes) -> dict[str, Any]:
         if len(p) < 17:
             return {}
         servos = struct.unpack("<8H", p[1:17])
@@ -249,11 +251,11 @@ PARAM_DEFS = [
 # ### Connection wrapper ######################################################
 
 class SerialConn:
-    def __init__(self):
-        self.serial = None
-        self.is_wifi = False
+    def __init__(self) -> None:
+        self.serial: Any = None
+        self.is_wifi: bool = False
 
-    def open_serial(self, port, baud):
+    def open_serial(self, port: str, baud: int) -> None:
         import time
         self.serial = serial.Serial(port, baud, timeout=0.005)
         self.serial.dtr = False
@@ -262,19 +264,19 @@ class SerialConn:
         self.serial.reset_input_buffer()
         self.is_wifi = False
 
-    def open_wifi(self, ip, port=23):
+    def open_wifi(self, ip: str, port: int = 23) -> None:
         import socket
         self.serial = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.serial.connect((ip, port))
         self.serial.settimeout(0.01)
         self.is_wifi = True
 
-    def read(self, n=1):
+    def read(self, n: int = 1) -> bytes:
         if self.is_wifi:
             return self.serial.recv(n)
         return self.serial.read(n)
 
-    def readline(self):
+    def readline(self) -> bytes:
         if self.is_wifi:
             data = b""
             while True:
@@ -288,13 +290,13 @@ class SerialConn:
             return data + b"\n"
         return self.serial.readline()
 
-    def write(self, data):
+    def write(self, data: bytes) -> None:
         if self.is_wifi:
             self.serial.sendall(data)
         else:
             self.serial.write(data)
 
-    def close(self):
+    def close(self) -> None:
         try:
             if self.is_wifi:
                 self.serial.close()
@@ -303,7 +305,7 @@ class SerialConn:
         except:
             pass
 
-    def is_open(self):
+    def is_open(self) -> bool:
         if self.is_wifi:
             return self.serial is not None
         return self.serial is not None and self.serial.is_open
@@ -2182,8 +2184,7 @@ class GroundStation:
         self.root.mainloop()
 
 
-def main():
-    """Launch the ground station application."""
+def main() -> None:
     app = GroundStation()
     app.run()
 
