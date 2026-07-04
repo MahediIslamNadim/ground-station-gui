@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "nexcore-ground-station"
+version = "0.1.0"
+description = "ESP8266 Flight Controller Ground Station with MAVLink telemetry, 3D visualization, and sensor calibration"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Mahedi Islam Nadim"}]
+requires-python = ">=3.8"
+dependencies = [
+    "pyserial>=3.5",
+    "numpy>=1.21.0",
+    "matplotlib>=3.5.0",
+]
+
+[project.urls]
+Repository = "https://github.com/MahediIslamNadim/ground-station-gui"
+
+[project.scripts]
+ground-station = "nexcore_ground_station:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
