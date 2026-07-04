@@ -285,7 +285,7 @@ class SerialConn:
                     if c == b"\n" or not c:
                         break
                     data += c
-                except:
+                except (OSError, AttributeError):
                     break
             return data + b"\n"
         return self.serial.readline()
@@ -302,7 +302,7 @@ class SerialConn:
                 self.serial.close()
             elif self.serial and self.serial.is_open:
                 self.serial.close()
-        except:
+        except (OSError, AttributeError):
             pass
 
     def is_open(self) -> bool:
@@ -848,7 +848,7 @@ class GroundStation:
             }
             try:
                 self.record_writer.writerow(row)
-            except:
+            except (IOError, OSError):
                 pass
 
     # ### Console Panel ####################################################
@@ -1116,7 +1116,7 @@ class GroundStation:
                 with open(path, "r") as f:
                     self.profiles = json.load(f)
                 self._refresh_profile_list()
-        except:
+        except (json.JSONDecodeError, IOError, OSError):
             self.profiles = {}
 
     # ### Record Panel #####################################################
