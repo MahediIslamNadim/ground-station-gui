@@ -1,0 +1,19 @@
+{
+    "serial": {
+        "baud": 115200,
+        "timeout": 0.005,
+        "auto_connect": false
+    },
+    "wifi": {
+        "port": 23,
+        "timeout": 0.01
+    },
+    "display": {
+        "theme": "dark",
+        "update_interval_ms": 50
+    },
+    "logging": {
+        "level": "INFO",
+        "file": ""
+    }
+}

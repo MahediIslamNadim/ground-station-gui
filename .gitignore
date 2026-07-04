@@ -26,6 +26,9 @@ Thumbs.db
 # Calibration data
 calibration_*.json
 
+# Local overrides
+config.local.json
+
 # Test artifacts
 htmlcov/
 .coverage
